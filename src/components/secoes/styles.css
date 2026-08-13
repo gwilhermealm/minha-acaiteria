@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+/* Container de Cards da Seção (Carrossel Horizontal) */
+.lista-produtos {
+display: flex;
+  flex-direction: row;        /* Cards lado a lado */
+  flex-wrap: nowrap;          /* NÃO deixa quebrar linha */
+  overflow-x: auto;           /* Liga o scroll horizontal */
+  gap: 16px;                  /* Espaço entre os cards */
+  padding-bottom: 10px;       /* Espaço para o scroll */
+  width: 100%;
+}
+
+/* Garante que o card não esprema */
+.produto-container {
+  flex: 0 0 250px;            /* Cada card terá tamanho fixo de 250px */
+  /* Mantém as regras do botão na base que já fizemos */
+  display: flex;
+  flex-direction: column;
+}
+h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-align: left;
+}

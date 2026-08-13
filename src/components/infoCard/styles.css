@@ -1,0 +1,14 @@
+.info-card{
+  padding: 8px 16px;
+  width: 100%;
+  display: inline-block;
+  font-Weight: bold;
+  background-color: #ececec;
+  color: #000000; ;
+ 
+  
+}
+info-card-title{
+  font-family: Arial, sans-serif;
+  
+}

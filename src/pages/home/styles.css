@@ -1,0 +1,8 @@
+.vitrine-container{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 20px;
+}

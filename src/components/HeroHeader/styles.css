@@ -1,0 +1,114 @@
+/* --- Container Principal do Header --- */
+.hero-header {
+  position: relative;
+  width: 100vw;
+  height: 80vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* --- Container da Logo (O segredo do posicionamento) --- */
+.logo-container {
+  position: absolute; /* Flutua por cima de tudo */
+  top: 20px;         /* Distância do topo */
+  left: 30px;        /* Distância da esquerda */
+  z-index: 10;       /* Garante que fique acima das imagens do carrossel */
+}
+
+.logo-redonda {
+  width: 120px;       /* Tamanho da logo (ajuste conforme necessário) */
+  height: 120px;      /* Precisa ser igual à largura */
+  border-radius: 50%; /* Garante que fique redondo, mesmo que a imagem não seja perfeita */
+  border: 4px solid white; /* Borda branca estilosa (cara de iFood) */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* Sombra para dar profundidade */
+  object-fit: cover;  /* Não distorce a imagem dentro do círculo */
+  background-color: white; /* Fundo branco caso a logo seja transparente */
+}
+
+/* --- Estilização do Carrossel (Swiper) --- */
+.mySwiper {
+  width: 100%;
+  height: 100%;
+}
+
+/* Estilo de cada slide */
+.slide-image {
+  width: 100%;
+  height: 100%;
+  background-size: cover;    /* A imagem cobre todo o espaço sem distorcer */
+  background-position: center; /* Centraliza a imagem */
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+/* Overlay escuro opcional para destacar o texto */
+.slide-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50%; /* Gradiente só na parte de baixo */
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  display: flex;
+  align-items: flex-end; /* Texto no fundo do slide */
+  justify-content: center;
+  padding-bottom: 60px; /* Espaço para as bolinhas da paginação */
+  color: white;
+}
+/* Container que segura a imagem e o texto */
+.slide-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* O estilo aplicado diretamente na tag <img> */
+.slide-image-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Faz a imagem cobrir todo o espaço sem achatar */
+  object-position: center; /* Mantém o foco no centro da imagem */
+  display: block;
+}
+.slide-overlay h2 {
+  font-size: 3rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Sombra no texto */
+}
+
+/* --- Responsividade (Mobile First) --- */
+@media (max-width: 768px) {
+  .hero-header {
+    height: 50vh; /* Banner menor no celular */
+  }
+
+  .logo-container {
+    top: 10px;
+    left: 10px;
+  }
+
+  .logo-redonda {
+    width: 80px; /* Logo menor no celular */
+    height: 80px;
+    border-width: 2px;
+  }
+  .slide-image {
+   width: 100%;
+   height: 100%;
+    object-fit: cover; /* Garante que a imagem não distorça */
+  }
+
+  .slide-overlay h2 {
+    font-size: 1.8rem; /* Texto menor no celular */
+    padding: 0 20px;
+    text-align: center;
+  }
+}
+
+/* --- Customizando as cores do Swiper (Setas e Bolinhas) --- */
+:root {
+  --swiper-navigation-color: #fff; /* Cor das setas laterais */
+  --swiper-pagination-color: #A020F0; /* Cor Roxa nas bolinhas ativas */
+}

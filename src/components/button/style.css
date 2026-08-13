@@ -1,0 +1,15 @@
+.botao-padrao {
+  background-color: #df22cc; /* Vermelho iFood */
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px; /* Borda arredondada */
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%; /* Para ocupar a largura do card */
+  transition: 0.2s; /* Para o efeito de hover ficar suave */
+}
+
+.botao-padrao:hover {
+  background-color: #cc25bbb4; /* Fica um vermelho mais escuro quando passa o mouse */
+}

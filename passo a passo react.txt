@@ -1,0 +1,11 @@
+O que pensar para deixar o Front-end "com cara de projeto real"?
+Quando voltarmos para alinhar o visual e a estrutura do projeto, estes serão os nossos próximos alvos no front-end:
+
+Organização de Pastas: Em um projeto real, não deixamos todos os arquivos soltos. Criamos pastas como /components (para botões, cards, menu), /pages (para Vitrine, Carrinho) e /assets (para imagens).
+
+Estilização Profissional: Vamos tirar aquele CSS "inline" (style={{...}}) e usar ferramentas de mercado, como Tailwind CSS ou CSS Modules, para deixar o app com cara de iFood (sombras, bordas arredondadas, cores vibrantes).
+
+Responsividade (Mobile First): Como 90% dos pedidos de delivery são feitos pelo celular, o design precisa ser pensado para telas pequenas primeiro.
+
+Experiência do Usuário (UX): Trocar aquele alert() nativo do navegador (que trava a tela) por notificações flutuantes e elegantes (os famosos Toasts), além de colocar efeitos de hover quando o cliente passa o mouse nos botões.
+Descanse a mente, deixe os conceitos de hoje assentarem, e quando estiver pronto para voltar é só chamar!

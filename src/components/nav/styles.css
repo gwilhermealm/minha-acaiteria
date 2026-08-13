@@ -1,0 +1,57 @@
+.nav-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 0;
+    background: #fff;
+    overflow-x: auto;
+}
+
+.navbar-SoAcai,
+.navbar-monte,
+.navbar-gelatos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    gap: 8px;
+    padding: 12px 24px;
+}
+
+.nav-image {
+    display: block;
+    width: 180px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+}
+nav:hover {
+    cursor: grabbing;
+    border: 2px solid #7924B9;
+    padding: 2px;
+    border-radius: 12px;
+    transition: all 0.3s ease-in-out;
+}
+image {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+}
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        padding: 16px 12px;
+        gap: 8px;
+    }
+
+    .nav-image {
+        width: 130px;
+    }
+}
