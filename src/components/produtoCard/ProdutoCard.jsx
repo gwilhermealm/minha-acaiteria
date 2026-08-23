@@ -2,7 +2,7 @@ import React from 'react';
 import './ProdutoCard.css';
 import { Button } from '../button/botao.jsx';
 
-export default function ProdutoCard({ nome, preco, descricao, imagem, aoComprar, onAdcionar }) {
+export default function ProdutoCard({ nome, preco, descricao, imagem, aoComprar, }) {
   return (
     <div className="produto-card">
       {/* Nova tag de imagem */}
