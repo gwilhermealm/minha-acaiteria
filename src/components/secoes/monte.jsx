@@ -2,16 +2,11 @@ import './styles.css';
 import { useState } from 'react';
 import ProdutoCard from '../produtoCard/ProdutoCard.jsx';
 import MonteSeuAcaiModal from '../modal/index.jsx'; // Importe o modal criado
+import { useProdutos } from '../../hooks/useProdutos';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 
-import P from '../../assets/produto/copo-300ml.jpg';
-import M from '../../assets/produto/copo-500ml.png';
-import G from '../../assets/produto/copo-700ml.png';
-const listaDeAcais = [
-  { id: 1, nome: "Copo 300ml", preco: 15.00, imagem: P },
-  { id: 2, nome: "Copo 500ml", preco: 20.00, imagem: M },
-  { id: 3, nome: "Copo Mostrão 700ml", preco: 45.00, imagem: G }
-];
 
 function MontadorAcai({ adicionarItem }) {
   const [acaiSelecionado, setAcaiSelecionado] = useState(null);
@@ -36,16 +31,33 @@ function MontadorAcai({ adicionarItem }) {
     handleFecharModal();
   };
 
+
+
+    const { produtos, loading, error } = useProdutos();
+  // 2. Trata o estado de carregamento
+  if (loading) {
+    return <div className="produtos-container"><p><Skeleton height={150} borderRadius={8} /></p></div>;
+  }
+
+  // Trata erros caso ocorram na busca do Supabase
+  if (error) {
+    return <div className="produtos-container"><p>Erro ao carregar os dados.</p></div>;
+  }
+  
+  const listaDeMonte = produtos.filter((produto) => produto.categoria?.toLowerCase() === 'monte');
+
+
     return (
         <div className="produtos-container">
             <h2>Açaí do seu jeito 💜</h2>
             <div className="lista-produtos">
-            {listaDeAcais.map((acai) => (
+            {listaDeMonte.map((acai) => (
                 <ProdutoCard 
-                    imagem={acai.imagem}
+                    imagem={acai.imagem_url}
                     key={acai.id}
                     nome={acai.nome}
                     preco={acai.preco}
+                    descricao={acai.descricao}
                     aoComprar={() => handleAbrirModal(acai)}
                 />
             ))}

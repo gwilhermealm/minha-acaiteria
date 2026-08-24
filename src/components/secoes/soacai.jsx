@@ -1,28 +1,39 @@
 import './styles.css';
 import ProdutoCard from '../produtoCard/ProdutoCard.jsx';
-import Tradicional from '../../assets/produto/acai-tradicional.png';
-import Morango from '../../assets/produto/acai-morango.png';
-import Barca from '../../assets/produto/barca-acai.avif';
+import { useProdutos } from '../../hooks/useProdutos';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
-const listaDeAcais = [
-  { id: 1, nome: "Açaí Tradicional 300ml", preco: 15.00 , imagem: Tradicional},
-  { id: 2, nome: "Açaí Morango e Leite Ninho", preco: 22.00, imagem: Morango },
-  { id: 3, nome: "Barca de Açaí Especial", preco: 45.00, imagem: Barca }
-];
 
 export default function SoAcai({adicionarItem}){
+
+
+    const { produtos, loading, error } = useProdutos();
+  // 2. Trata o estado de carregamento
+  if (loading) {
+    return <div className="produtos-container"><p><Skeleton height={150} borderRadius={8} /></p></div>;
+  }
+
+  // Trata erros caso ocorram na busca do Supabase
+  if (error) {
+    return <div className="produtos-container"><p>Erro ao carregar os dados.</p></div>;
+  }
+ const listaAcai = produtos.filter((produto) => produto.categoria?.toLowerCase() === 'acai');
+
+
   return (
 
     <div className="produtos-container">
       <h2>Açaís</h2>
       
       <div className="lista-produtos">
-        {listaDeAcais.map((acai) => (
+        {listaAcai.map((acai) => (
           <ProdutoCard 
-            imagem={acai.imagem}
+            imagem={acai.imagem_url}
             key={acai.id} 
             nome={acai.nome} 
             preco={acai.preco} 
+            descricao={acai.descricao}
             aoComprar={() => adicionarItem(acai)}
           />
         ))}

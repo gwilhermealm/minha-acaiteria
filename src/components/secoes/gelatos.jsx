@@ -1,16 +1,26 @@
 import './styles.css';
 import ProdutoCard from '../produtoCard/ProdutoCard.jsx';
-import Creme from '../../assets/produto/gelato-creme.png';
-import Morango from '../../assets/produto/gelato-morango.png';
-import Barca from '../../assets/produto/gelato-chocolate.png';
-
-const listaDeGelatos = [
-  { id: 1, nome: "Gelato de Creme", preco: 12.00, imagem: Creme },
-  { id: 2, nome: "Gelato de Morango", preco: 13.00, imagem: Morango },
-  { id: 3, nome: "Gelato de Chocolate", preco: 14.00, imagem: Barca }
-];
-
+import { useProdutos } from '../../hooks/useProdutos';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 export default function Gelatos({ adicionarItem }) {
+
+  const { produtos, loading, error } = useProdutos();
+  // 2. Trata o estado de carregamento
+  if (loading) {
+    return <div className="produtos-container"><p><Skeleton height={150} borderRadius={8} /></p></div>;
+  }
+
+  // Trata erros caso ocorram na busca do Supabase
+  if (error) {
+    return <div className="produtos-container"><p>Erro ao carregar os dados.</p></div>;
+  }
+
+const listaDeGelatos = produtos.filter((produto) => produto.categoria?.toLowerCase() === 'gelatos');
+
+
+
+
   return (
 
     <div className="produtos-container">
@@ -19,10 +29,11 @@ export default function Gelatos({ adicionarItem }) {
       <div className="lista-produtos">
         {listaDeGelatos.map((gelato) => (
           <ProdutoCard 
-            imagem={gelato.imagem}
+            imagem={gelato.imagem_url}
             key={gelato.id} 
             nome={gelato.nome} 
             preco={gelato.preco} 
+            descricao={gelato.descricao}
             aoComprar={() => adicionarItem(gelato)}
           />
         ))}

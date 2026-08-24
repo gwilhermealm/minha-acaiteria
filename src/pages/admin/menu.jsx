@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import React, { useState } from 'react';
 import './menu.css';
 import './admin.css';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { useProdutos } from '../../hooks/useProdutos';
+import { supabase } from '../../supabaseClient';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 
 export default function GestaoCardapio() {
   // Estado para o formulário de Produtos
@@ -19,41 +18,10 @@ export default function GestaoCardapio() {
   });
 
   // Estados para renderizar e alterar preço dos produtos
-  const [produtos, setProdutos] = useState([]);
-  const [adicionais, setAdicionais] = useState([]);
+  const { produtos, adicionais, loading, refetch } = useProdutos();
   const [produtoSelecionado, setProdutoSelecionado] = useState('');
   const [novoPreco, setNovoPreco] = useState(''); // <--- NOVO ESTADO
-  const [loading, setLoading] = useState(true);
   const [loadingPreco, setLoadingPreco] = useState(false); // <--- NOVO ESTADO PARA SPINNER/BUTTON
-
-  // Função isolada para recarregar a lista de produtos (reutilizável)
-  const buscarProdutos = async () => {
-    try {
-      setLoading(true);
-      const [resultadoProdutos, resultadoAdicionais] = await Promise.all([
-        supabase
-          .from('produto')
-          .select('id, nome, preco'),
-        supabase
-          .from('adicionais')
-          .select('id, nome, preco')
-      ]);
-
-      if (resultadoProdutos.error) throw resultadoProdutos.error;
-      if (resultadoAdicionais.error) throw resultadoAdicionais.error;
-
-      setProdutos(resultadoProdutos.data || []);
-      setAdicionais(resultadoAdicionais.data || []);
-    } catch (error) {
-      console.error('Erro ao carregar produtos:', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    buscarProdutos();
-  }, []);
 
   // Função auxiliar formatar moeda 
   const formatarMoeda = (valor) => {
@@ -108,7 +76,7 @@ export default function GestaoCardapio() {
       
       setProdutoSelecionado('');
       setNovoPreco('');
-      await buscarProdutos();
+      await refetch();
 
     } catch (error) {
       exibirMensagem('erro', `Erro ao atualizar preço: ${error.message}`);
@@ -197,7 +165,7 @@ export default function GestaoCardapio() {
       setProduto({ nome: '', preco: '', descricao: '', imagem_url: '', categoria: '' });
       setArquivoImagem(null); 
       document.getElementById('inputImagem').value = '';
-      await buscarProdutos(); // Atualiza a lista do select também ao criar um produto novo
+      await refetch(); // Atualiza a lista do select também ao criar um produto novo
     }
   };
 
@@ -214,6 +182,7 @@ export default function GestaoCardapio() {
     } else {
       exibirMensagem('sucesso', 'Adicional cadastrado com sucesso!');
       setAdicional({ nome: '', preco: '' });
+      await refetch();
     }
   };
 
