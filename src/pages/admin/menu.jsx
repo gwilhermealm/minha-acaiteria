@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import './menu.css';
 import './admin.css';
@@ -6,20 +6,116 @@ import './admin.css';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Verifique se tem o "export" aqui na frente:
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-
-// Inicialização do cliente Supabase
 export default function GestaoCardapio() {
-  // Estado para o formulário de Produtos (imagem_url começa vazia)
+  // Estado para o formulário de Produtos
   const [produto, setProduto] = useState({
     nome: '',
     preco: '',
     descricao: '',
     imagem_url: '',
-    categoria: '' // Esta será preenchida após o upload no Storage
+    categoria: ''
   });
+
+  // Estados para renderizar e alterar preço dos produtos
+  const [produtos, setProdutos] = useState([]);
+  const [adicionais, setAdicionais] = useState([]);
+  const [produtoSelecionado, setProdutoSelecionado] = useState('');
+  const [novoPreco, setNovoPreco] = useState(''); // <--- NOVO ESTADO
+  const [loading, setLoading] = useState(true);
+  const [loadingPreco, setLoadingPreco] = useState(false); // <--- NOVO ESTADO PARA SPINNER/BUTTON
+
+  // Função isolada para recarregar a lista de produtos (reutilizável)
+  const buscarProdutos = async () => {
+    try {
+      setLoading(true);
+      const [resultadoProdutos, resultadoAdicionais] = await Promise.all([
+        supabase
+          .from('produto')
+          .select('id, nome, preco'),
+        supabase
+          .from('adicionais')
+          .select('id, nome, preco')
+      ]);
+
+      if (resultadoProdutos.error) throw resultadoProdutos.error;
+      if (resultadoAdicionais.error) throw resultadoAdicionais.error;
+
+      setProdutos(resultadoProdutos.data || []);
+      setAdicionais(resultadoAdicionais.data || []);
+    } catch (error) {
+      console.error('Erro ao carregar produtos:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    buscarProdutos();
+  }, []);
+
+  // Função auxiliar formatar moeda 
+  const formatarMoeda = (valor) => {
+    return Number(valor).toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    });
+  };
+
+  // Seleciona um produto ou adicional e preenche o preço atual.
+  const handleProdutoChange = (e) => {
+    const [tipo, id] = e.target.value.split(':');
+    setProdutoSelecionado(e.target.value);
+
+    const lista = tipo === 'adicional' ? adicionais : produtos;
+    const itemEncontrado = lista.find((item) => String(item.id) === id);
+    if (itemEncontrado) {
+      setNovoPreco(itemEncontrado.preco);
+    } else {
+      setNovoPreco('');
+    }
+  };
+
+  // --- NOVA FUNÇÃO: SALVAR PREÇO NOVO NO SUPABASE ---
+  const handleAtualizarPreco = async (e) => {
+    e.preventDefault();
+
+    if (!produtoSelecionado || !novoPreco) {
+      exibirMensagem('erro', 'Selecione um produto e informe o novo preço.');
+      return;
+    }
+
+    try {
+      setLoadingPreco(true);
+
+      const [tipo, id] = produtoSelecionado.split(':');
+      const tabela = tipo === 'adicional' ? 'adicionais' : 'produto';
+      const { data, error } = await supabase
+        .from(tabela)
+        .update({ preco: parseFloat(novoPreco) })
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+
+      // Se 'data' for um array vazio, a política do banco (RLS) bloqueou o UPDATE silenciosamente
+      if (!data || data.length === 0) {
+        throw new Error('O banco de dados não permitiu alterar o preço. Verifique se o RLS (Políticas de Segurança) está ativo no Supabase.');
+      }
+
+      exibirMensagem('sucesso', 'Preço alterado com sucesso!');
+      
+      setProdutoSelecionado('');
+      setNovoPreco('');
+      await buscarProdutos();
+
+    } catch (error) {
+      exibirMensagem('erro', `Erro ao atualizar preço: ${error.message}`);
+    } finally {
+      setLoadingPreco(false);
+    }
+  };
 
   // Novo estado para guardar o arquivo de imagem selecionado ANTES do envio
   const [arquivoImagem, setArquivoImagem] = useState(null);
@@ -37,30 +133,27 @@ export default function GestaoCardapio() {
     setTimeout(() => setMensagem({ tipo: '', texto: '' }), 5000);
   };
 
-  // --- NOVA FUNÇÃO: UPLOAD PARA O SUPABASE STORAGE ---
+  // --- UPLOAD PARA O SUPABASE STORAGE ---
   const fazerUploadImagem = async (arquivo) => {
     try {
-      // 1. Define um nome único para o arquivo (ex: timestamp_nomeoriginal.png)
       const nomeArquivo = `${Date.now()}_${arquivo.name}`;
       
-      // 2. Faz o upload para o bucket 'imagens-produtos' (você precisa criar este bucket no Supabase)
-      const { data: uploadData, error: uploadError } = await supabase
+      const { uploadError } = await supabase
         .storage
-        .from('imagens-produtos') // NOME DO SEU BUCKET
+        .from('imagens-produtos')
         .upload(nomeArquivo, arquivo, {
           cacheControl: '3600',
-          upsert: false // Não sobrescreve arquivos existentes
+          upsert: false
         });
 
       if (uploadError) throw uploadError;
 
-      // 3. Pega a URL pública do arquivo recém-criado
       const { data: publicUrlData } = supabase
         .storage
         .from('imagens-produtos')
         .getPublicUrl(nomeArquivo);
 
-      return publicUrlData.publicUrl; // Retorna a URL pronta para salvar na tabela
+      return publicUrlData.publicUrl;
 
     } catch (error) {
       console.error('Erro no upload:', error.message);
@@ -68,13 +161,12 @@ export default function GestaoCardapio() {
     }
   };
 
-  // --- HANDLER PARA SALVAR PRODUTO (MODIFICADO) ---
+  // --- HANDLER PARA SALVAR PRODUTO ---
   const handleSalvarProduto = async (e) => {
     e.preventDefault();
     setLoadingProduto(true);
     let urlDaImagemFinal = null;
 
-    // 1. Se houver um arquivo de imagem selecionado, faz o upload primeiro
     if (arquivoImagem) {
       exibirMensagem('sucesso', 'Fazendo upload da imagem...');
       urlDaImagemFinal = await fazerUploadImagem(arquivoImagem);
@@ -82,18 +174,17 @@ export default function GestaoCardapio() {
       if (!urlDaImagemFinal) {
         exibirMensagem('erro', 'Falha no upload da imagem. O produto não foi salvo.');
         setLoadingProduto(false);
-        return; // Interrompe se o upload falhar
+        return;
       }
     }
 
-    // 2. Salva o produto na tabela 'produto', usando a URL gerada (se houver)
     const { error: insertError } = await supabase.from('produto').insert([
       {
         nome: produto.nome,
         preco: parseFloat(produto.preco),
         descricao: produto.descricao,
         categoria: produto.categoria,
-        imagem_url: urlDaImagemFinal // Salva a URL pública do Storage
+        imagem_url: urlDaImagemFinal
       }
     ]);
 
@@ -103,15 +194,14 @@ export default function GestaoCardapio() {
       exibirMensagem('erro', `Erro ao salvar produto: ${insertError.message}`);
     } else {
       exibirMensagem('sucesso', 'Produto e imagem cadastrados com sucesso!');
-      // Limpa os estados
       setProduto({ nome: '', preco: '', descricao: '', imagem_url: '', categoria: '' });
       setArquivoImagem(null); 
-      // Limpa o input de arquivo manualmente (referência nativa seria melhor, mas isso funciona)
       document.getElementById('inputImagem').value = '';
+      await buscarProdutos(); // Atualiza a lista do select também ao criar um produto novo
     }
   };
 
-  // Handler para salvar Adicional (sem alterações)
+  // Handler para salvar Adicional
   const handleSalvarAdicional = async (e) => {
     e.preventDefault();
     setLoadingAdicional(true);
@@ -161,20 +251,18 @@ export default function GestaoCardapio() {
               </select>
             </div>
 
-
             <div className="grupo-input">
               <label>Preço (R$)</label>
               <input type="number" step="0.01" required placeholder="18.00" value={produto.preco} onChange={(e) => setProduto({ ...produto, preco: e.target.value })} />
             </div>
 
-            {/* --- NOVO INPUT DE ARQUIVO --- */}
             <div className="grupo-input">
               <label>Imagem do Produto (Arquivo)</label>
               <input
                 id="inputImagem"
                 type="file"
-                accept="image/*" // Aceita apenas imagens
-                onChange={(e) => setArquivoImagem(e.target.files[0])} // Captura o arquivo[0]
+                accept="image/*"
+                onChange={(e) => setArquivoImagem(e.target.files[0])}
               />
             </div>
 
@@ -206,7 +294,49 @@ export default function GestaoCardapio() {
             </button>
           </form>
         </section>
+
+        {/* CARD 3: ALTERAR PREÇOS */}
+        <section className="card-cadastro">
+          <h2 className="card-titulo">Alterar Preços</h2>
+          <form onSubmit={handleAtualizarPreco} className="form-cadastro">
+            <div className="grupo-input">
+              <label>Produto</label>  
+              <select value={produtoSelecionado} onChange={handleProdutoChange} disabled={loading}>
+                <option value="">
+                  {loading ? 'Carregando produtos...' : 'Selecione um produto'}
+                </option>
+                {produtos.map((p) => (
+                  <option key={`produto-${p.id}`} value={`produto:${p.id}`}>
+                    {p.nome} - {formatarMoeda(p.preco)}
+                  </option>
+                ))}
+                <option value="">
+                     {loading ? 'carregando adicionais...': '---adicionais---'}
+                </option>
+               {adicionais.map((a)=> (
+                    <option key={`adicional-${a.id}`} value={`adicional:${a.id}`}>
+                      {a.nome} - {formatarMoeda(a.preco)}
+                    </option>
+               ))}
+              </select>
+            </div>
+            <div className="grupo-input">
+              <label>Novo Preço (R$)</label>
+              <input 
+                type="number" 
+                step="0.01" 
+                placeholder="0.00" 
+                required
+                value={novoPreco}
+                onChange={(e) => setNovoPreco(e.target.value)}
+              />
+            </div>
+            <button type="submit" disabled={loadingPreco || !produtoSelecionado} className="btn-salvar">
+              {loadingPreco ? 'Atualizando...' : 'Alterar Preço'}
+            </button>
+          </form>
+        </section>
       </div>
-    </div>
+    </div>    
   );
 }

@@ -1,9 +1,20 @@
 import { Link, useLocation , Outlet} from 'react-router-dom';
 import { BiStore, BiGridAlt, BiRestaurant, BiBarChartAlt2, BiHelpCircle, BiLogOut } from 'react-icons/bi';
 import './admin.css';
-import React from 'react';
+import { supabase } from '../../supabaseClient';
+
+
 export default function AdminLayout() {
   const location = useLocation();
+  const adminLogout = async (e) => {
+    e.preventDefault(); // Impede o comportamento padrão do link
+    
+    // 1. Faz o logout oficial no Supabase (limpa tokens e encerra a sessão na memória)
+    await supabase.auth.signOut(); 
+    
+    // 2. Redireciona o usuário para a tela de login
+    navigate('/admin/login');
+  };
 
   return (
     <div className="admin-layout-container">
@@ -49,9 +60,9 @@ export default function AdminLayout() {
           <Link to="/admin/suporte" className="sidebar-link">
             <BiHelpCircle /> Suporte
           </Link>
-          <Link to="/admin/login" className="sidebar-link">
+          <a href="/admin/login" className="sidebar-link" onClick={adminLogout}>
             <BiLogOut /> Sair
-          </Link>
+          </a>
         </div>
       </aside>
 
